@@ -1,0 +1,48 @@
+.sicbo-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.sicbo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+.sicbo-header h1 { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+.back-btn {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 0.95rem; transition: color 0.2s;
+}
+.back-btn:hover { color: var(--gold); }
+
+.header-info { display: flex; gap: 16px; align-items: center; }
+.player-count { color: var(--text-muted); font-size: 0.9rem; }
+.balance-badge { color: var(--gold); font-weight: 700; font-size: 1rem; }
+
+.sicbo-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sicbo-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .sicbo-layout {
+    grid-template-columns: 1fr;
+  }
+}

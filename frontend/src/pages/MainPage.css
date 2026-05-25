@@ -1,0 +1,131 @@
+.main-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a0f 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 파티클 배경 */
+.bg-particles { position: absolute; inset: 0; pointer-events: none; }
+.particle {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--gold);
+  border-radius: 50%;
+  opacity: 0.4;
+  left: calc(var(--i) * 5.3% + 2%);
+  top: calc(var(--i) * 4.8% + 5%);
+  animation: float calc(3s + var(--i) * 0.4s) ease-in-out infinite alternate;
+}
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+
+/* 중앙 컨텐츠 */
+.main-content {
+  text-align: center;
+  z-index: 1;
+  padding: 40px;
+}
+
+/* 로고 */
+.logo-section { margin-bottom: 48px; }
+.logo-icon {
+  font-size: 5rem;
+  display: block;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 20px rgba(255,215,0,0.5));
+  animation: bounce 2s ease-in-out infinite;
+}
+.logo-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 4px;
+  text-shadow: none;
+}
+.logo-sub {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-top: 8px;
+  letter-spacing: 2px;
+}
+
+/* 유저 정보 */
+.user-greeting {
+  color: var(--text);
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+}
+.user-greeting .gold { color: var(--gold); font-weight: 700; }
+.balance {
+  display: block;
+  color: var(--gold);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* 메뉴 버튼 */
+.main-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.menu-btn {
+  width: 280px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.menu-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.menu-btn:hover::before { opacity: 1; }
+.menu-btn:hover { transform: translateY(-3px); }
+.menu-btn:active { transform: translateY(0); }
+
+.menu-btn.primary {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #111;
+  box-shadow: 0 4px 20px rgba(255,165,0,0.4);
+}
+.menu-btn.secondary {
+  background: linear-gradient(135deg, #2c3e50, #1a252f);
+  color: var(--gold);
+  border: 1px solid var(--border);
+}
+.menu-btn.danger {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+  color: white;
+}
+
+/* 하단 카드 문양 */
+.card-suits {
+  margin-top: 48px;
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  font-size: 2rem;
+  opacity: 0.3;
+}
+.suit:nth-child(1), .suit:nth-child(4) { color: #888; }
+.suit:nth-child(2), .suit:nth-child(3) { color: #c0392b; }

@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # ─── Nginx 리버스 프록시 ───────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: casino_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - casino_net
+
+  # ─── React 프론트엔드 ──────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: casino_frontend
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost}
+      - VITE_SOCKET_URL=${VITE_SOCKET_URL:-http://localhost}
+    restart: unless-stopped
+    networks:
+      - casino_net
+
+  # ─── Node.js 백엔드 ───────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: casino_backend
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-casino_db}
+      - DB_USER=${DB_USER:-casino_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - casino_net
+
+  # ─── PostgreSQL 데이터베이스 ───────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: casino_postgres
+    environment:
+      - POSTGRES_DB=${DB_NAME:-casino_db}
+      - POSTGRES_USER=${DB_USER:-casino_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-casino_user} -d ${DB_NAME:-casino_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - casino_net
+
+  # ─── Redis (게임 상태 캐시) ────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: casino_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-casinored1s}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-casinored1s}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - casino_net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  casino_net:
+    driver: bridge

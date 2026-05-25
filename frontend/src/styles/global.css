@@ -1,0 +1,119 @@
+/* ══════════════════════════════════════════
+   Casino Royal — 글로벌 스타일
+══════════════════════════════════════════ */
+
+:root {
+  --gold:       #FFD700;
+  --gold-light: #FFE966;
+  --green:      #1a6b3c;
+  --green-dark: #0f4525;
+  --green-felt: #2d7a4f;
+  --red:        #c0392b;
+  --bg:         #0a0a0f;
+  --card-bg:    #141420;
+  --border:     rgba(255,215,0,0.25);
+  --text:       #e8e8f0;
+  --text-muted: #8888a0;
+  --radius:     12px;
+  --shadow:     0 8px 32px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* 공통 버튼 */
+.btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-gold {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #111;
+}
+.btn-gold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FFE566, #FFB830);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+}
+.btn-red {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+.btn-green {
+  background: linear-gradient(135deg, #27ae60, #1a8a48);
+  color: white;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold);
+}
+.btn-outline:hover:not(:disabled) {
+  background: rgba(255,215,0,0.08);
+}
+
+/* 카드 */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+/* 입력 */
+input {
+  background: #1e1e2e;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: var(--gold); }
+input::placeholder { color: var(--text-muted); }
+
+/* 금액 */
+.amount { color: var(--gold); font-weight: 700; }
+.win    { color: #2ecc71; }
+.lose   { color: #e74c3c; }
+
+/* 애니메이션 */
+@keyframes fadeIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+@keyframes spin    { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes shake   {
+  0%,100% { transform:translateX(0); }
+  20%,60% { transform:translateX(-6px); }
+  40%,80% { transform:translateX(6px); }
+}
+@keyframes bounce {
+  0%,100% { transform:translateY(0); }
+  50%     { transform:translateY(-12px); }
+}
+
+.fade-in  { animation: fadeIn  0.3s ease; }
+.pulse    { animation: pulse   1.5s infinite; }
+.spinning { animation: spin    0.6s linear infinite; }
+.shaking  { animation: shake   0.5s ease; }
+.bouncing { animation: bounce  0.6s ease; }

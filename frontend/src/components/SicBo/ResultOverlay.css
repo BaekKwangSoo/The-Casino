@@ -1,0 +1,90 @@
+.result-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.result-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 460px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+
+.result-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+
+.result-dice {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.result-die {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
+}
+
+.result-sum {
+  font-size: 1.1rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.sum-big {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+.big-small {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.big-small.big   { background: rgba(231,76,60,0.2);  color: #e74c3c; }
+.big-small.small { background: rgba(52,152,219,0.2); color: #3498db; }
+
+/* 내 결과 */
+.my-result { margin-bottom: 20px; }
+.my-result.win  { color: #2ecc71; }
+.my-result.lose { color: #e74c3c; }
+
+.win-icon, .lose-icon { font-size: 3rem; margin-bottom: 8px; }
+.win-text  { font-size: 1.4rem; font-weight: 800; }
+.lose-text { font-size: 1.1rem; font-weight: 600; }
+.win-amount {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin-top: 4px;
+}
+
+.bet-details { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+.bet-detail {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 0.9rem;
+}
+.bet-detail.win  span:last-child { color: #2ecc71; font-weight: 600; }
+.bet-detail.lose span:last-child { color: #e74c3c; }
+
+.no-bet { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px; }
+
+.close-btn { width: 100%; padding: 14px; font-size: 1rem; }

@@ -1,0 +1,146 @@
+.betting-table { display: flex; flex-direction: column; gap: 14px; }
+
+/* 베팅 금액 */
+.bet-amount-section { padding: 16px; }
+.bet-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+.amount-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.chip {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #1e1e2e;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+.chip.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #111;
+}
+
+.custom-amount {
+  width: 120px;
+  padding: 7px 10px;
+  font-size: 0.9rem;
+}
+
+.total-bet {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.total-bet span { color: var(--gold); font-weight: 700; }
+
+/* 탭 */
+.bet-tabs {
+  display: flex;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border-right: 1px solid var(--border);
+}
+.tab-btn:last-child { border-right: none; }
+.tab-btn:hover { background: rgba(255,215,0,0.05); color: var(--text); }
+.tab-btn.active { background: rgba(255,215,0,0.12); color: var(--gold); }
+
+.tab-desc { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px; }
+
+/* 베팅 그리드 */
+.bet-grid { display: grid; gap: 10px; }
+.main-bets   { grid-template-columns: 1fr 1fr; }
+.single-bets { grid-template-columns: repeat(3, 1fr); }
+.sum-bets    { grid-template-columns: repeat(7, 1fr); }
+.triple-bets { grid-template-columns: repeat(6, 1fr); }
+
+.bet-btn {
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #1e1e2e;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+.bet-btn:hover:not(.disabled) {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  background: rgba(255,215,0,0.08);
+}
+.bet-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 대/소/홀/짝 */
+.big-btn { padding: 20px 12px; }
+.big-btn.red    { border-color: rgba(231,76,60,0.4); }
+.big-btn.red:hover:not(.disabled) { border-color: #e74c3c; background: rgba(231,76,60,0.1); }
+.big-btn.blue   { border-color: rgba(52,152,219,0.4); }
+.big-btn.blue:hover:not(.disabled) { border-color: #3498db; background: rgba(52,152,219,0.1); }
+.big-btn.purple { border-color: rgba(155,89,182,0.4); }
+.big-btn.purple:hover:not(.disabled) { border-color: #9b59b6; background: rgba(155,89,182,0.1); }
+.big-btn.green  { border-color: rgba(46,204,113,0.4); }
+.big-btn.green:hover:not(.disabled) { border-color: #2ecc71; background: rgba(46,204,113,0.1); }
+
+.bet-name { font-size: 1.1rem; font-weight: 700; }
+.bet-sub  { font-size: 0.75rem; color: var(--text-muted); }
+
+/* 단일 숫자 */
+.die-num { font-size: 1.4rem; font-weight: 900; color: var(--gold); }
+
+/* 합계 */
+.sum-btn { padding: 10px 4px; }
+.sum-btn.high { border-color: rgba(231,76,60,0.3); }
+.sum-btn.low  { border-color: rgba(52,152,219,0.3); }
+.sum-num { font-size: 1.1rem; font-weight: 700; }
+
+/* 배당 */
+.bet-payout { font-size: 0.7rem; color: #f39c12; font-weight: 600; }
+.payout-tag {
+  background: rgba(243,156,18,0.2);
+  color: #f39c12;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+}
+
+/* 스페셜 */
+.special-section { margin-bottom: 16px; }
+.special-section h4 { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px; }
+
+.triple-any-btn { width: 100%; padding: 14px; font-size: 1rem; }
+.triple-btn, .double-btn { padding: 10px 6px; }
+.triple-btn span:first-child,
+.double-btn span:first-child { font-size: 1rem; font-weight: 700; color: var(--gold-light); }
+
+/* 현재 베팅 */
+.current-bets { padding: 14px; }
+.current-bets h4 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; }
+.bet-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.85rem;
+}
+.bet-item .amount { color: var(--gold); font-weight: 600; }

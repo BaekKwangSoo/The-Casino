@@ -1,0 +1,58 @@
+.dice-display { text-align: center; }
+.dice-title { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+.dice-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.die-face {
+  width: 80px; height: 80px;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.die-face.hidden svg rect { fill: #2a2a3e; stroke: var(--border); }
+.die-face.rolling {
+  animation: shake 0.5s ease infinite;
+}
+.die-face.revealed {
+  box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+}
+.die-face.revealed.rolling { animation: spin 0.3s linear infinite; }
+
+.dice-sum {
+  font-size: 1rem;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sum-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+.sum-type {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.sum-type.big   { background: rgba(231,76,60,0.2);  color: #e74c3c; }
+.sum-type.small { background: rgba(52,152,219,0.2); color: #3498db; }
+
+.sum-parity {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.sum-parity.odd  { background: rgba(155,89,182,0.2); color: #9b59b6; }
+.sum-parity.even { background: rgba(46,204,113,0.2); color: #2ecc71; }
+
+.dice-waiting { color: var(--text-muted); font-size: 0.9rem; margin-top: 8px; }
