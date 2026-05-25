@@ -18,6 +18,11 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: '비밀번호는 6자 이상이어야 합니다.' });
     }
 
+    const existing = await db.query('SELECT id FROM users WHERE username = $1', [username]);
+    if (existing.rowCount > 0) {
+      return res.status(400).json({ message: '이미 사용 중인 사용자명입니다.', field: 'username' });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
     const result = await db.query(
       `INSERT INTO users (username, password) VALUES ($1, $2)

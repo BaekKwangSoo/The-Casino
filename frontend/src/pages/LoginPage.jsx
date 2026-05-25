@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(params.get('mode') === 'register');
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [errorField, setErrorField] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { setAuth } = useStore();
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorField('');
     setLoading(true);
 
     try {
@@ -29,7 +31,9 @@ export default function LoginPage() {
       connectSocket(data.token);
       navigate('/lobby');
     } catch (err) {
-      setError(err.response?.data?.message || '오류가 발생했습니다.');
+      const data = err.response?.data;
+      setError(data?.message || '오류가 발생했습니다.');
+      setErrorField(data?.field || '');
     } finally {
       setLoading(false);
     }
@@ -51,7 +55,11 @@ export default function LoginPage() {
               type="text"
               placeholder="사용자명 입력"
               value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, username: e.target.value });
+                if (errorField === 'username') { setError(''); setErrorField(''); }
+              }}
+              className={errorField === 'username' ? 'input-error' : ''}
               required
               autoFocus
             />
