@@ -6,6 +6,7 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY . .
+RUN cp node_modules/@dimforge/rapier3d-compat/rapier_wasm3d_bg.wasm public/
 RUN npm run build
 
 # ── 서빙 단계 (Nginx) ─────────────────────────────

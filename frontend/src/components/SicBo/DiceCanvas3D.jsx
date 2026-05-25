@@ -64,10 +64,10 @@ const DISC_RADIUS =  1.4;
 const FRONT_POS = [[-1.05, -1.86, 0.15], [0.1, -1.86, -0.2], [1.05, -1.86, 0.1]];
 const TOP_POS   = [[-1.1, 0, -0.85], [1.1, 0, -0.85], [0, 0, 1.05]];
 
-/* Rapier 싱글톤 초기화 */
+/* Rapier 싱글톤 초기화 — public/rapier_wasm3d_bg.wasm 에서 직접 로드 */
 let _rapierReady = null;
 function initRapier() {
-  if (!_rapierReady) _rapierReady = RAPIER.init().then(() => RAPIER);
+  if (!_rapierReady) _rapierReady = RAPIER.init({ module_or_path: '/rapier_wasm3d_bg.wasm' }).then(() => RAPIER);
   return _rapierReady;
 }
 
