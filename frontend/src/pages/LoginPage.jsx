@@ -87,7 +87,7 @@ export default function LoginPage() {
         </button>
 
         {isRegister && (
-          <p className="bonus-msg">🎁 신규 가입 시 <strong>10,000 크레딧</strong> 지급!</p>
+          <p className="bonus-msg">🎁 신규 가입 시 <strong>100,000 크레딧</strong> 지급!</p>
         )}
       </div>
     </div>
