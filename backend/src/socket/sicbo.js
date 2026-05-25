@@ -11,7 +11,7 @@ const sicbo   = require('../services/sicboService');
 
 const BETTING_DURATION = 30;   // 베팅 시간 (초)
 const ROLLING_DURATION = 3;    // 주사위 굴리기 연출 (초)
-const RESULT_DURATION  = 10;   // 결과 표시 시간 (초)
+const RESULT_DURATION  = 13;   // 결과 표시 시간 (초) — 2s 지연 + 9s 오버레이 + 2s 버퍼
 const MAX_PLAYERS      = 100;
 
 let gameLoop = null;
@@ -38,6 +38,7 @@ async function runBettingPhase() {
   await gss.setPhase('betting');
 
   ioRef.to('sicbo').emit('phase:betting', { roundId });
+  ioRef.to('sicbo').emit('bets:update', {});
 
   let timeLeft = BETTING_DURATION;
   await gss.setTimer(timeLeft);
@@ -127,14 +128,22 @@ async function runResultPhase(roundId, dice) {
   }
 
   ioRef.to('sicbo').emit('phase:result', {
-    roundId,
-    dice,
-    sum,
-    results,
+    roundId, dice, sum, results, timeLeft: RESULT_DURATION,
   });
+
+  // result 단계 카운트다운
+  let remaining = RESULT_DURATION;
+  await gss.setTimer(remaining);
+  const resultTimer = setInterval(async () => {
+    remaining--;
+    await gss.setTimer(remaining);
+    ioRef.to('sicbo').emit('timer', { timeLeft: remaining, phase: 'result' });
+    if (remaining <= 0) clearInterval(resultTimer);
+  }, 1000);
 
   // 다음 라운드 준비
   setTimeout(async () => {
+    clearInterval(resultTimer);
     await runBettingPhase();
   }, RESULT_DURATION * 1000);
 }
@@ -164,7 +173,8 @@ function registerSicBoHandlers(io, socket) {
       gss.getPlayers(),
     ]);
 
-    socket.emit('sicbo:state', { phase, timeLeft, round, playerCount: players.length });
+    const bets = await gss.getAllBetsAggregated();
+    socket.emit('sicbo:state', { phase, timeLeft, round, playerCount: players.length, bets });
 
     // 다른 플레이어에게 입장 알림
     socket.to('sicbo').emit('player:joined', {
@@ -223,8 +233,9 @@ function registerSicBoHandlers(io, socket) {
 
       socket.emit('bet:success', { bet, balance: newBalance });
 
-      // 방 전체에 베팅 현황 업데이트
-      socket.to('sicbo').emit('bet:placed', { username: user.username, betType });
+      // 방 전체에 집계 베팅 현황 업데이트
+      const agg = await gss.getAllBetsAggregated();
+      ioRef.to('sicbo').emit('bets:update', agg);
 
     } catch (err) {
       console.error('[SicBo] 베팅 오류:', err);

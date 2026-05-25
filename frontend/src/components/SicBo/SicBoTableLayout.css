@@ -1,0 +1,352 @@
+/* ════════════════════════════════════════════
+   SicBo Casino Table Layout
+════════════════════════════════════════════ */
+
+.sbt-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+/* ── 칩 트레이 ──────────────────────────────── */
+.chip-tray {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px;
+  flex-wrap: wrap;
+}
+
+.ct-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.38);
+}
+
+.ct-chips { display: flex; gap: 8px; align-items: center; }
+
+/* 카지노 칩 */
+.chip {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: var(--cb);
+  border: 4px dashed var(--cs);
+  color: var(--ct);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.55);
+  flex-shrink: 0;
+}
+.chip::before {
+  content: '';
+  position: absolute; inset: 5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.28);
+  pointer-events: none;
+}
+.chip-lbl { font-size: 0.7rem; font-weight: 900; position: relative; z-index: 1; }
+
+.chip:hover { transform: translateY(-4px) scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+.chip.chip-sel {
+  transform: translateY(-7px) scale(1.14);
+  box-shadow: 0 0 0 3px #FFD700, 0 10px 26px rgba(0,0,0,0.55);
+}
+
+.ct-hint { font-size: 0.78rem; color: #FFD700; margin-left: 6px; }
+.ct-hint-dim { color: rgba(255,255,255,0.28); }
+
+/* ── 카지노 테이블 ──────────────────────────── */
+.casino-table {
+  background-color: #1b5e35;
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(0,0,0,0.045) 0 1px, transparent 1px 50%),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,0.045) 0 1px, transparent 1px 50%);
+  background-size: 10px 10px;
+  border: 5px solid #c9a227;
+  border-radius: 20px;
+  padding: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow:
+    0 0 0 2px rgba(201,162,39,0.22),
+    0 30px 70px rgba(0,0,0,0.75),
+    inset 0 0 120px rgba(0,0,0,0.16);
+}
+
+/* 테이블 제목 바 */
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 5px 0 7px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.th-title {
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: rgba(255,215,0,0.75);
+  text-shadow: 0 0 12px rgba(255,215,0,0.3);
+}
+.th-deco { font-size: 1rem; color: rgba(255,255,255,0.28); }
+
+/* ── 테이블 행 ──────────────────────────────── */
+.t-row {
+  display: flex;
+  gap: 3px;
+}
+
+/* ── 베팅 구역 기본 ─────────────────────────── */
+.bz {
+  position: relative;
+  border: 1.5px solid rgba(255,255,255,0.28);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 3px 5px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  transition: all 0.14s;
+  gap: 2px;
+  min-height: 52px;
+}
+
+/* 칩 선택 시 커서 및 hover */
+.bz.bz-ready { cursor: pointer; }
+.bz.bz-ready:hover {
+  background: rgba(255,255,255,0.11) !important;
+  border-color: rgba(255,255,255,0.75) !important;
+  transform: scale(1.035);
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(255,255,255,0.15);
+}
+
+/* 드래그 오버 */
+.bz.bz-over {
+  background: rgba(255,215,0,0.2) !important;
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 16px rgba(255,215,0,0.45);
+  transform: scale(1.04);
+  z-index: 10;
+}
+
+/* 내 베팅 있을 때 */
+.bz.bz-has-bet {
+  box-shadow: inset 0 0 0 1.5px rgba(255,215,0,0.5);
+}
+
+/* ── 텍스트 요소 ─────────────────────────────── */
+.bz-pay   { font-size: 0.6rem; color: rgba(255,215,0,0.9); font-weight: 700; line-height: 1; }
+.bz-kanji { font-size: 2.4rem; font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.bz-kanji-sm { font-size: 1.7rem; font-weight: 900; color: #fff; line-height: 1; }
+.bz-en    { font-size: 0.78rem; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 1px; }
+.bz-range { font-size: 0.62rem; color: rgba(255,255,255,0.5); }
+.bz-big-txt { font-size: 0.82rem; font-weight: 800; color: #fff; line-height: 1.2; }
+
+.sum-n { font-size: 1.2rem; font-weight: 900; color: #fff; line-height: 1; }
+
+/* 주사위 스택 */
+.ds { display: flex; gap: 2px; align-items: center; justify-content: center; }
+
+/* ── 베팅 마커 ──────────────────────────────── */
+.bz-others {
+  position: absolute; top: 2px; right: 2px;
+  font-size: 0.52rem;
+  background: rgba(0,0,0,0.75);
+  color: rgba(255,255,255,0.85);
+  padding: 2px 4px;
+  border-radius: 5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.bz-mine {
+  position: absolute; bottom: 2px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  background: rgba(255,215,0,0.92);
+  color: #000;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-weight: 900;
+  white-space: nowrap;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  transition: background 0.15s;
+}
+
+/* 취소 가능 상태 */
+.bz-cancelable {
+  cursor: pointer !important;
+}
+.bz-cancelable:hover {
+  background: rgba(255,60,60,0.12) !important;
+  border-color: rgba(255,80,80,0.55) !important;
+}
+.bz-mine-cancel {
+  background: rgba(255,80,80,0.9) !important;
+  color: #fff !important;
+}
+.bz-cancel-x {
+  font-size: 0.55rem;
+  opacity: 0.85;
+}
+
+/* ════════════════════════════════════════════
+   ROW 1 — 트리플 + Any Triple + 더블
+════════════════════════════════════════════ */
+.t-group {
+  flex: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.t-group-label {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.38);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+.t-group-cells {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.bz-triple {
+  flex: 1;
+  background: rgba(180,50,40,0.16);
+  border-color: rgba(200,70,60,0.42);
+  min-height: 50px;
+}
+
+.bz-any-triple {
+  flex: 2;
+  background: rgba(255,215,0,0.1);
+  border: 2px solid rgba(255,215,0,0.5) !important;
+  min-height: 66px;
+}
+
+.bz-double {
+  flex: 1;
+  min-height: 50px;
+  background: rgba(255,255,255,0.04);
+}
+
+/* ════════════════════════════════════════════
+   ROW 2 — 大 / 小
+════════════════════════════════════════════ */
+.bz-big {
+  flex: 1;
+  min-height: 82px;
+  background: rgba(180,40,30,0.22);
+  border: 2px solid rgba(220,70,60,0.52) !important;
+}
+.bz-big:hover.bz-ready { background: rgba(180,40,30,0.4) !important; }
+
+.bz-small {
+  flex: 1;
+  min-height: 82px;
+  background: rgba(25,100,170,0.22);
+  border: 2px solid rgba(52,130,210,0.52) !important;
+}
+.bz-small:hover.bz-ready { background: rgba(25,100,170,0.4) !important; }
+
+/* ════════════════════════════════════════════
+   ROW 3 — 합계 4~17
+════════════════════════════════════════════ */
+.row-sums { min-height: 62px; }
+
+.bz-sum {
+  flex: 1;
+  min-height: 58px;
+}
+.sum-hi {
+  background: rgba(180,40,30,0.12);
+  border-color: rgba(200,70,60,0.35);
+}
+.sum-lo {
+  background: rgba(25,100,170,0.12);
+  border-color: rgba(52,130,210,0.35);
+}
+
+/* ════════════════════════════════════════════
+   ROW 4 — 도미노
+════════════════════════════════════════════ */
+.row-dom {
+  flex-direction: column;
+  gap: 2px;
+}
+.dom-label {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.38);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 1px 4px;
+}
+.dom-cells {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+.bz-domino {
+  flex: 1;
+  min-height: 46px;
+  min-width: 0;
+  background: rgba(255,255,255,0.04);
+}
+
+/* ════════════════════════════════════════════
+   ROW 5 — 단일 숫자 + EVEN + ODD
+════════════════════════════════════════════ */
+.row-bottom { min-height: 72px; }
+
+.bz-single {
+  flex: 1;
+  min-height: 70px;
+  background: rgba(255,255,255,0.05);
+}
+
+.bz-even {
+  flex: 4;
+  min-height: 70px;
+  background: rgba(255,215,0,0.1);
+  border: 2px solid rgba(255,215,0,0.42) !important;
+}
+
+.bz-odd {
+  flex: 4;
+  min-height: 70px;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid rgba(255,255,255,0.32) !important;
+}
+
+/* ── 반응형 ──────────────────────────────────── */
+@media (max-width: 700px) {
+  .sbt-root { padding: 8px; }
+  .bz-kanji { font-size: 1.8rem; }
+  .sum-n    { font-size: 0.95rem; }
+  .chip     { width: 44px; height: 44px; }
+  .chip-lbl { font-size: 0.62rem; }
+  .ct-hint  { display: none; }
+  .bz-domino { min-width: 0; }
+}

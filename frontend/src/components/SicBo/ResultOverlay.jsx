@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './ResultOverlay.css';
 
 export default function ResultOverlay({ dice, myResult, onClose }) {
   const sum = dice.reduce((a, b) => a + b, 0);
   const totalWin = myResult?.totalWin || 0;
+  const [countdown, setCountdown] = useState(9);
 
   useEffect(() => {
-    const t = setTimeout(onClose, 9000);
-    return () => clearTimeout(t);
+    const autoClose = setTimeout(onClose, 9000);
+    const tick = setInterval(() => setCountdown(c => Math.max(0, c - 1)), 1000);
+    return () => { clearTimeout(autoClose); clearInterval(tick); };
   }, []);
 
   return (
@@ -59,7 +61,7 @@ export default function ResultOverlay({ dice, myResult, onClose }) {
         )}
 
         <button className="btn btn-gold close-btn" onClick={onClose}>
-          확인 (다음 라운드)
+          확인 ({countdown}초)
         </button>
       </div>
     </div>

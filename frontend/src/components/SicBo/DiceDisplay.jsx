@@ -17,10 +17,15 @@ function DieFace({ value, animating }) {
   return (
     <div className={`die-face ${animating ? 'rolling' : ''} ${value ? 'revealed' : 'hidden'}`}>
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="96" height="96" rx="16" ry="16"
-              fill="#f5f0e8" stroke="#c8b090" strokeWidth="2" />
+        <defs>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.4)" />
+          </filter>
+        </defs>
+        <rect x="3" y="3" width="94" height="94" rx="16" ry="16"
+              fill="#ffffff" stroke="#dddddd" strokeWidth="1.5" filter="url(#shadow)" />
         {dots.map(([cx, cy], i) => (
-          <circle key={i} cx={cx} cy={cy} r="8" fill="#1a1a2e" />
+          <circle key={i} cx={cx} cy={cy} r="8.5" fill="#1a1a1a" />
         ))}
       </svg>
     </div>

@@ -1,48 +1,96 @@
 .sicbo-page {
   min-height: 100vh;
-  background: var(--bg);
+  background-color: #0d2b1a;
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(0,0,0,0.04) 0 1px, transparent 1px 50%),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,0.04) 0 1px, transparent 1px 50%);
+  background-size: 10px 10px;
   display: flex;
   flex-direction: column;
 }
 
+/* ── 헤더 ──────────────────────────────────────── */
 .sicbo-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border);
+  padding: 11px 22px;
+  background: rgba(0,0,0,0.55);
+  border-bottom: 2px solid rgba(201,162,39,0.45);
+  flex-shrink: 0;
 }
-.sicbo-header h1 { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+
+.sicbo-header h1 {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-shadow: 0 0 16px rgba(255,215,0,0.4);
+}
+
 .back-btn {
-  background: none; border: none; color: var(--text-muted);
-  cursor: pointer; font-size: 0.95rem; transition: color 0.2s;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  font-size: 0.88rem;
+  padding: 5px 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
-.back-btn:hover { color: var(--gold); }
+.back-btn:hover { background: rgba(255,255,255,0.15); color: var(--gold); border-color: var(--gold); }
 
-.header-info { display: flex; gap: 16px; align-items: center; }
-.player-count { color: var(--text-muted); font-size: 0.9rem; }
-.balance-badge { color: var(--gold); font-weight: 700; font-size: 1rem; }
+.header-info { display: flex; gap: 12px; align-items: center; }
+.balance-badge {
+  color: var(--gold); font-weight: 700; font-size: 0.95rem;
+  background: rgba(255,215,0,0.1);
+  padding: 4px 13px; border-radius: 20px;
+  border: 1px solid rgba(255,215,0,0.28);
+}
 
-.sicbo-layout {
+/* ── 3컬럼 상단 영역 ────────────────────────────── */
+.sicbo-top3 {
   display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+  padding: 10px 14px;
+  height: 240px;
+  flex-shrink: 0;
+}
+
+.top3-left,
+.top3-center,
+.top3-right {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── 베팅 테이블 영역 ─────────────────────────── */
+.sicbo-table-area {
   flex: 1;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 16px;
 }
 
-.sicbo-left {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.sicbo-table-area > .sbt-root {
+  min-width: 860px;
 }
 
-@media (max-width: 900px) {
-  .sicbo-layout {
-    grid-template-columns: 1fr;
+/* ── 반응형 ─────────────────────────────────────── */
+@media (max-width: 860px) {
+  .sicbo-top3 {
+    grid-template-columns: 1fr 1.6fr 1fr;
+    height: 200px;
   }
+  .sicbo-header h1 { font-size: 0.95rem; letter-spacing: 1px; }
+}
+
+@media (max-width: 600px) {
+  .sicbo-top3 {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .top3-center { height: 220px; }
+  .top3-left, .top3-right { height: 130px; }
 }

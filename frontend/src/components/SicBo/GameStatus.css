@@ -1,38 +1,51 @@
-.game-status {
-  padding: 20px;
-}
+.game-status { padding: 20px; }
+
 .status-top {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
 }
-.phase-icon  { font-size: 1.5rem; }
-.phase-label { font-size: 1.1rem; font-weight: 700; }
 
+.phase-icon  { font-size: 1.4rem; }
+.phase-label {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px currentColor;
+}
+
+/* 타이머 */
 .timer-section { display: flex; flex-direction: column; gap: 8px; }
+
 .timer-bar-bg {
-  height: 8px;
+  height: 7px;
   background: rgba(255,255,255,0.1);
   border-radius: 4px;
   overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
 }
 .timer-bar-fill {
   height: 100%;
   border-radius: 4px;
   transition: width 1s linear, background 0.3s;
+  box-shadow: 0 0 8px currentColor;
 }
+
 .timer-count {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: var(--gold);
   text-align: center;
+  text-shadow: 0 0 14px rgba(255,215,0,0.5);
 }
 .timer-count.urgent {
-  color: #e74c3c;
+  color: #ff6b6b;
   animation: pulse 0.5s infinite;
+  text-shadow: 0 0 14px rgba(255,80,80,0.6);
 }
 
+/* 롤링 애니메이션 */
 .rolling-anim {
   display: flex;
   justify-content: center;
@@ -43,4 +56,5 @@
   font-size: 2rem;
   animation: spin 0.4s linear infinite;
   display: inline-block;
+  filter: drop-shadow(0 0 6px rgba(255,215,0,0.4));
 }

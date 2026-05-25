@@ -27,6 +27,7 @@ const useStore = create((set, get) => ({
   setTimeLeft:    (t)       => set({ timeLeft: t }),
   setPlayerCount: (n)       => set({ playerCount: n }),
   addBet:         (bet)     => set((s) => ({ currentBets: [...s.currentBets, bet] })),
+  cancelBet:      (betType) => set((s) => ({ currentBets: s.currentBets.filter(b => b.betType !== betType) })),
   clearBets:      ()        => set({ currentBets: [] }),
   setLastResult:  (result)  => set({ lastResult: result }),
   addHistory:     (entry)   => set((s) => ({

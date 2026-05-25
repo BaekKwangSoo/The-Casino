@@ -66,6 +66,26 @@ async function clearUserBets(userId) {
   await redis.del(KEYS.bets(userId));
 }
 
+async function getAllBetsAggregated() {
+  const players = await getPlayers();
+  const agg = {};
+  for (const player of players) {
+    const bets = await getUserBets(player.id);
+    if (bets.length === 0) continue;
+    // betType별 이 플레이어의 합산
+    const contrib = {};
+    for (const bet of bets) {
+      contrib[bet.betType] = (contrib[bet.betType] || 0) + bet.amount;
+    }
+    for (const [betType, total] of Object.entries(contrib)) {
+      if (!agg[betType]) agg[betType] = { count: 0, total: 0 };
+      agg[betType].count += 1;   // 플레이어 수
+      agg[betType].total += total;
+    }
+  }
+  return agg;
+}
+
 // ── 플레이어 관리 ──────────────────────────────────────────
 async function addPlayer(player) {
   const data = await redis.get(KEYS.players);
@@ -96,6 +116,6 @@ module.exports = {
   setRound, getRound,
   setPhase, getPhase,
   setTimer, getTimer,
-  addBet, getUserBets, clearUserBets,
+  addBet, getUserBets, clearUserBets, getAllBetsAggregated,
   addPlayer, removePlayer, getPlayers, getPlayerCount,
 };

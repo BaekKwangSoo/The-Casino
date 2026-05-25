@@ -47,6 +47,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
     depends_on:
@@ -77,6 +78,8 @@ services:
     restart: unless-stopped
     networks:
       - casino_net
+    ports:
+      - "5432:5432"
 
   # ─── Redis (게임 상태 캐시) ────────────────────────
   redis:
@@ -93,6 +96,8 @@ services:
     restart: unless-stopped
     networks:
       - casino_net
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:
