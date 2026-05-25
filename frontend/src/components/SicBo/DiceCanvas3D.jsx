@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 /* ══ 주사위 눈 위치 (256×256 px) ════════════════════ */
 const DOT_MAP = {
@@ -16,8 +17,6 @@ function makeFaceTex(n) {
   const cv = document.createElement('canvas');
   cv.width = cv.height = sz;
   const ctx = cv.getContext('2d');
-
-  /* 둥근 흰 배경 */
   const r = 32, m = 10;
   ctx.fillStyle = '#f2ede4';
   ctx.beginPath();
@@ -28,33 +27,25 @@ function makeFaceTex(n) {
   ctx.lineTo(m, m + r);        ctx.quadraticCurveTo(m, m, m + r, m);
   ctx.closePath();
   ctx.fill();
-
   ctx.strokeStyle = 'rgba(0,0,0,0.1)';
   ctx.lineWidth = 3;
   ctx.stroke();
-
-  /* 점 */
   ctx.fillStyle = '#1a1a2e';
   for (const [x, y] of DOT_MAP[n]) {
     ctx.beginPath();
     ctx.arc(x, y, 24, 0, Math.PI * 2);
     ctx.fill();
   }
-
   return new THREE.CanvasTexture(cv);
 }
 
-/*  BoxGeometry 면 순서: +X, -X, +Y, -Y, +Z, -Z
-    표준 주사위:          3,   4,   1,   6,  2,   5  */
 const FACE_ORDER = [3, 4, 1, 6, 2, 5];
-
 let _texCache = null;
 function getTextures() {
   if (!_texCache) _texCache = FACE_ORDER.map(makeFaceTex);
   return _texCache;
 }
 
-/* 값 N을 +Y(위)로 보이게 하는 Euler 각도 */
 const SETTLE_ROT = {
   1: [0,             0, 0],
   2: [-Math.PI / 2,  0, 0],
@@ -64,36 +55,25 @@ const SETTLE_ROT = {
   6: [ Math.PI,      0, 0],
 };
 
-/* 바운스 물리 상수 */
-const GRAVITY     = 44;   // 중력 가속도 (units/s²)
-const FLOOR_Y     = -2.3; // 나무 바닥 위치
-const CEIL_Y      =  1.2; // 유리 상단 위치
-const HALF        =  0.44;// 주사위 반크기 (0.88/2)
-const DISC_RADIUS =  1.4; // 위에서 보기 유리 링 반지름
-const COLL_D      =  0.92;// 주사위 간 최소 거리 (충돌 임계값)
-const WALL_X      =  1.35;// 정면 유리 x 벽
-const WALL_Z      =  0.55;// 정면 유리 z 벽
+/* ══ 물리 상수 ════════════════════════════════════════ */
+const HALF        = 0.44;
+const FLOOR_Y     = -2.3;
+const CEIL_Y      =  1.2;
+const DISC_RADIUS =  1.4;
 
-/* 주사위 별 속도 — rx/ry/rz: 회전, vy: 수직, vx/vz: 수평(탑뷰) */
-function rndVel(seed) {
-  return {
-    rx: (Math.random() - 0.5) * 28 + seed * 5.0,
-    ry: (Math.random() - 0.5) * 36,
-    rz: (Math.random() - 0.5) * 28 - seed * 4.0,
-    vy: 9.0 + Math.random() * 3.0,
-    vx: (Math.random() - 0.5) * 9 + seed * 1.5,
-    vz: (Math.random() - 0.5) * 9 - seed * 1.0,
-  };
-}
-
-/* ══ 공통 Three.js 씬 컴포넌트 ═══════════════════════ */
-/* y = FLOOR_Y + HALF = -1.86 → 주사위가 나무판 위에 안착 */
 const FRONT_POS = [[-1.05, -1.86, 0.15], [0.1, -1.86, -0.2], [1.05, -1.86, 0.1]];
 const TOP_POS   = [[-1.1, 0, -0.85], [1.1, 0, -0.85], [0, 0, 1.05]];
 
+/* Rapier 싱글톤 초기화 */
+let _rapierReady = null;
+function initRapier() {
+  if (!_rapierReady) _rapierReady = RAPIER.init().then(() => RAPIER);
+  return _rapierReady;
+}
+
+/* ══ DiceScene ════════════════════════════════════════ */
 function DiceScene({ dice, animState, isTop }) {
   const canvasRef = useRef(null);
-  /* 최신 상태를 RAF 루프에서 읽기 위해 ref 사용 */
   const stateRef  = useRef({ dice, animState });
   useEffect(() => { stateRef.current = { dice, animState }; });
 
@@ -101,263 +81,260 @@ function DiceScene({ dice, animState, isTop }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    /* ── 렌더러 ── */
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    let rafId;
+    let disposeFn = () => {};
 
-    /* ── 씬 ── */
-    const scene = new THREE.Scene();
+    initRapier().then(R => {
+      if (!canvasRef.current) return;
 
-    /* ── 카메라 ── */
-    const parent = canvas.parentElement;
-    const pw = parent?.clientWidth  || 200;
-    const ph = parent?.clientHeight || 200;
-    const camera = new THREE.PerspectiveCamera(40, pw / ph, 0.1, 50);
-    if (isTop) {
-      camera.position.set(0, 6, 0);
-      camera.up.set(0, 0, -1);
-      camera.lookAt(0, 0, 0);
-    } else {
-      camera.position.set(0, 1.2, 5.5);
-      camera.lookAt(0, -0.3, 0);
-    }
+      /* ── Three.js ── */
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const scene = new THREE.Scene();
 
-    /* ── 조명 ── */
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
-    dir.position.set(3, 5, 4);
-    scene.add(dir);
-    const pt = new THREE.PointLight(0xbee0ff, 0.3, 20);
-    pt.position.set(-2, 2, 3);
-    scene.add(pt);
+      const parent = canvas.parentElement;
+      const pw = parent?.clientWidth  || 200;
+      const ph = parent?.clientHeight || 200;
+      const camera = new THREE.PerspectiveCamera(40, pw / ph, 0.1, 50);
+      if (isTop) {
+        camera.position.set(0, 6, 0);
+        camera.up.set(0, 0, -1);
+        camera.lookAt(0, 0, 0);
+      } else {
+        camera.position.set(0, 1.2, 5.5);
+        camera.lookAt(0, -0.3, 0);
+      }
 
-    /* ── 주사위 메시 ── */
-    const textures  = getTextures();
-    const positions = isTop ? TOP_POS : FRONT_POS;
-    const vels      = positions.map((_, i) => rndVel(i - 1));
-    const tgtQuats  = positions.map(() => new THREE.Quaternion());
-    const settled   = positions.map(() => false);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+      const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+      dir.position.set(3, 5, 4);
+      scene.add(dir);
+      const pt = new THREE.PointLight(0xbee0ff, 0.3, 20);
+      pt.position.set(-2, 2, 3);
+      scene.add(pt);
 
-    const meshes = positions.map(pos => {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(0.88, 0.88, 0.88),
-        textures.map(t => new THREE.MeshStandardMaterial({ map: t, roughness: 0.2, metalness: 0.05 })),
-      );
-      mesh.position.set(...pos);
-      scene.add(mesh);
-      return mesh;
+      const textures  = getTextures();
+      const positions = isTop ? TOP_POS : FRONT_POS;
+
+      const meshes = positions.map(pos => {
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.88, 0.88, 0.88),
+          textures.map(t => new THREE.MeshStandardMaterial({ map: t, roughness: 0.2, metalness: 0.05 })),
+        );
+        mesh.position.set(...pos);
+        scene.add(mesh);
+        return mesh;
+      });
+
+      /* ── Rapier 월드 ── */
+      const world = new R.World(isTop ? { x: 0, y: -8, z: 0 } : { x: 0, y: -22, z: 0 });
+
+      if (!isTop) {
+        /* 정면: 바닥 + 천장 + 4면 유리 벽 */
+        const fb = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, FLOOR_Y, 0));
+        world.createCollider(R.ColliderDesc.cuboid(5, 0.05, 5).setRestitution(0.45).setFriction(0.6), fb);
+
+        const cb = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, CEIL_Y, 0));
+        world.createCollider(R.ColliderDesc.cuboid(5, 0.05, 5).setRestitution(0.1).setFriction(0.1), cb);
+
+        const wallY = (CEIL_Y + FLOOR_Y) / 2;
+        const wallH = (CEIL_Y - FLOOR_Y) / 2;
+        [
+          { p: [1.4, wallY, 0],   e: [0.05, wallH, 1.2] },
+          { p: [-1.4, wallY, 0],  e: [0.05, wallH, 1.2] },
+          { p: [0, wallY,  0.65], e: [1.5, wallH, 0.05] },
+          { p: [0, wallY, -0.65], e: [1.5, wallH, 0.05] },
+        ].forEach(({ p, e }) => {
+          const wb = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(...p));
+          world.createCollider(R.ColliderDesc.cuboid(...e).setRestitution(0.3).setFriction(0.3), wb);
+        });
+      } else {
+        /* 탑뷰: 바닥 + 원형 벽 (16 세그먼트 박스) */
+        const floorY = -HALF - 0.05;
+        const fb = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, floorY, 0));
+        world.createCollider(R.ColliderDesc.cuboid(3, 0.05, 3).setRestitution(0.3).setFriction(0.8), fb);
+
+        const segs = 16;
+        for (let j = 0; j < segs; j++) {
+          const ang   = (j / segs) * Math.PI * 2;
+          const wx    = Math.cos(ang) * DISC_RADIUS;
+          const wz    = Math.sin(ang) * DISC_RADIUS;
+          const wb    = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(wx, 0, wz));
+          const hLen  = (Math.PI * 2 * DISC_RADIUS / segs) * 0.58;
+          const q     = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ang + Math.PI / 2);
+          world.createCollider(
+            R.ColliderDesc.cuboid(hLen, 0.8, 0.08)
+              .setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
+              .setRestitution(0.45)
+              .setFriction(0.3),
+            wb,
+          );
+        }
+      }
+
+      /* 주사위 리짓바디 */
+      const diceBodies = positions.map((pos) => {
+        const body = world.createRigidBody(
+          R.RigidBodyDesc.dynamic()
+            .setTranslation(pos[0], pos[1], pos[2])
+            .setLinearDamping(0.1)
+            .setAngularDamping(0.1),
+        );
+        world.createCollider(
+          R.ColliderDesc.cuboid(HALF, HALF, HALF)
+            .setRestitution(0.4)
+            .setFriction(0.5)
+            .setDensity(1.5),
+          body,
+        );
+        return body;
+      });
+
+      const tgtQuats = positions.map(() => new THREE.Quaternion());
+      const settled  = positions.map(() => false);
+
+      /* 리사이즈 */
+      const resize = () => {
+        const el = canvas.parentElement;
+        if (!el) return;
+        const w = el.clientWidth, h = el.clientHeight;
+        if (!w || !h) return;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      };
+      resize();
+      const ro = new ResizeObserver(resize);
+      if (parent) ro.observe(parent);
+
+      /* 롤링 임펄스 */
+      const applyRollingImpulse = (body, i) => {
+        const seed = i - 1;
+        if (!isTop) {
+          body.setLinvel({ x: (Math.random() - 0.5) * 5, y: 9 + Math.random() * 4, z: (Math.random() - 0.5) * 5 }, true);
+        } else {
+          /* 중심 방향으로 랜덤 속도 */
+          const pos = positions[i];
+          const dx  = -pos[0] + (Math.random() - 0.5) * 3;
+          const dz  = -pos[2] + (Math.random() - 0.5) * 3;
+          const len = Math.sqrt(dx * dx + dz * dz) || 1;
+          const spd = 6 + Math.random() * 4;
+          body.setLinvel({ x: (dx / len) * spd + seed * 1.5, y: 0, z: (dz / len) * spd - seed * 1.2 }, true);
+        }
+        body.setAngvel({
+          x: (Math.random() - 0.5) * 28,
+          y: (Math.random() - 0.5) * 35,
+          z: (Math.random() - 0.5) * 28,
+        }, true);
+      };
+
+      /* 애니메이션 루프 */
+      let prevState = null;
+
+      const animate = () => {
+        rafId = requestAnimationFrame(animate);
+        const { dice: d, animState: s } = stateRef.current;
+
+        /* 상태 전환 */
+        if (s !== prevState) {
+          if (s === 'rolling') {
+            settled.fill(false);
+            diceBodies.forEach((body, i) => {
+              const p = positions[i];
+              body.setTranslation({ x: p[0], y: isTop ? HALF + 0.05 : FLOOR_Y + HALF, z: p[2] }, true);
+              body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+              body.setLinearDamping(0.05);
+              body.setAngularDamping(0.08);
+              applyRollingImpulse(body, i);
+            });
+
+          } else if (s === 'settling') {
+            settled.fill(false);
+            tgtQuats.forEach((q, i) => {
+              const val = d[i];
+              if (val) {
+                const [ex, ey, ez] = SETTLE_ROT[val] ?? [0, 0, 0];
+                q.setFromEuler(new THREE.Euler(ex, ey, ez));
+              }
+            });
+            diceBodies.forEach(body => {
+              body.setLinearDamping(3.5);
+              body.setAngularDamping(6.0);
+            });
+
+          } else if (s === 'idle') {
+            meshes.forEach((mesh, i) => {
+              const val = d[i];
+              if (val) {
+                const [ex, ey, ez] = SETTLE_ROT[val] ?? [0, 0, 0];
+                mesh.rotation.set(ex, ey, ez);
+              }
+              mesh.position.set(...positions[i]);
+            });
+            diceBodies.forEach((body, i) => {
+              const p = positions[i];
+              body.setTranslation({ x: p[0], y: p[1], z: p[2] }, true);
+              body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+              body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+            });
+          }
+          prevState = s;
+        }
+
+        /* 물리 스텝 */
+        if (s === 'rolling' || (s === 'settling' && !settled.every(Boolean))) {
+          world.step();
+        }
+
+        /* 메시 동기화 */
+        if (s === 'rolling' || s === 'settling') {
+          diceBodies.forEach((body, i) => {
+            if (settled[i]) return;
+
+            const t = body.translation();
+            const r = body.rotation();
+            meshes[i].position.set(t.x, t.y, t.z);
+
+            if (s === 'settling' && d[i]) {
+              const lv = body.linvel();
+              const av = body.angvel();
+              const spd    = lv.x ** 2 + lv.y ** 2 + lv.z ** 2;
+              const angSpd = av.x ** 2 + av.y ** 2 + av.z ** 2;
+
+              if (spd < 0.09 && angSpd < 0.25) {
+                /* 정착 → 회전 스냅 */
+                settled[i] = true;
+                meshes[i].quaternion.copy(tgtQuats[i]);
+                body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+              } else {
+                meshes[i].quaternion.set(r.x, r.y, r.z, r.w);
+              }
+            } else {
+              meshes[i].quaternion.set(r.x, r.y, r.z, r.w);
+            }
+          });
+        }
+
+        renderer.render(scene, camera);
+      };
+
+      animate();
+
+      disposeFn = () => {
+        cancelAnimationFrame(rafId);
+        ro.disconnect();
+        world.free();
+        meshes.forEach(m => {
+          m.geometry.dispose();
+          [].concat(m.material).forEach(mat => mat.dispose());
+        });
+        renderer.dispose();
+      };
     });
 
-    /* ── 리사이즈 ── */
-    const resize = () => {
-      const el = canvas.parentElement;
-      if (!el) return;
-      const w = el.clientWidth, h = el.clientHeight;
-      if (!w || !h) return;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    if (parent) ro.observe(parent);
-
-    /* ── 애니메이션 루프 ── */
-    let rafId;
-    let prevState = null;
-    const clock = new THREE.Clock();
-
-    const animate = () => {
-      rafId = requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const { dice: d, animState: s } = stateRef.current;
-
-      /* 상태 전환 처리 */
-      if (s !== prevState) {
-        if (s === 'rolling') {
-          settled.fill(false);
-          vels.forEach((v, i) => {
-            Object.assign(v, rndVel(i - 1));
-            if (!isTop) meshes[i].position.y = FLOOR_Y + HALF;
-          });
-        } else if (s === 'settling') {
-          settled.fill(false);
-          tgtQuats.forEach((q, i) => {
-            const val = d[i];
-            if (val) {
-              const [ex, ey, ez] = SETTLE_ROT[val] ?? [0, 0, 0];
-              q.setFromEuler(new THREE.Euler(ex, ey, ez));
-            }
-          });
-        } else if (s === 'idle') {
-          meshes.forEach((mesh, i) => {
-            const val = d[i];
-            if (val) {
-              const [ex, ey, ez] = SETTLE_ROT[val] ?? [0, 0, 0];
-              mesh.rotation.set(ex, ey, ez);
-            }
-            mesh.position.set(...positions[i]);
-          });
-        }
-        prevState = s;
-      }
-
-      /* 프레임 업데이트 */
-      meshes.forEach((mesh, i) => {
-        const v = vels[i];
-
-        if (s === 'rolling') {
-          mesh.rotation.x += v.rx * dt;
-          mesh.rotation.y += v.ry * dt;
-          mesh.rotation.z += v.rz * dt;
-
-          if (!isTop) {
-            /* 정면: 중력 + 상하 바운스 */
-            v.vy -= GRAVITY * dt;
-            mesh.position.y += v.vy * dt;
-
-            /* 충돌 임펄스로 생긴 수평 속도 적용 (빠른 마찰) */
-            const hf = Math.pow(0.88, dt * 60);
-            mesh.position.x += v.vx * dt;
-            mesh.position.z += v.vz * dt;
-            v.vx *= hf; v.vz *= hf;
-            if (Math.abs(mesh.position.x) > WALL_X) { mesh.position.x = Math.sign(mesh.position.x) * WALL_X; v.vx *= -0.5; }
-            if (Math.abs(mesh.position.z) > WALL_Z) { mesh.position.z = Math.sign(mesh.position.z) * WALL_Z; v.vz *= -0.5; }
-
-            if (mesh.position.y < FLOOR_Y + HALF) {
-              mesh.position.y = FLOOR_Y + HALF;
-              v.vy = 10.0 + Math.random() * 4.0;
-            }
-            if (mesh.position.y > CEIL_Y - HALF) {
-              mesh.position.y = CEIL_Y - HALF;
-              v.vy = 0;
-            }
-          } else {
-            /* 탑뷰: 수평 이동 + 원형 벽 반발 */
-            mesh.position.x += v.vx * dt;
-            mesh.position.z += v.vz * dt;
-
-            const dx = mesh.position.x, dz = mesh.position.z;
-            const dist = Math.sqrt(dx * dx + dz * dz);
-            const limit = DISC_RADIUS - HALF;
-            if (dist > limit) {
-              const nx = dx / dist, nz = dz / dist;
-              mesh.position.x = limit * nx;
-              mesh.position.z = limit * nz;
-              const dot = v.vx * nx + v.vz * nz;
-              v.vx = (v.vx - 2 * dot * nx) * 0.72;
-              v.vz = (v.vz - 2 * dot * nz) * 0.72;
-            }
-          }
-
-        } else if (s === 'settling' && d[i]) {
-          if (isTop) {
-            /* 탑뷰: 마찰 감속 + 링 유지 */
-            const fr = Math.pow(0.84, dt * 60);
-            v.vx *= fr; v.vz *= fr;
-            mesh.position.x += v.vx * dt;
-            mesh.position.z += v.vz * dt;
-
-            const sdx = mesh.position.x, sdz = mesh.position.z;
-            const sd = Math.sqrt(sdx * sdx + sdz * sdz);
-            const sl = DISC_RADIUS - HALF;
-            if (sd > sl) {
-              mesh.position.x = sl * (sdx / sd);
-              mesh.position.z = sl * (sdz / sd);
-              v.vx *= 0.4; v.vz *= 0.4;
-            }
-            mesh.quaternion.slerp(tgtQuats[i], 0.12);
-
-          } else if (!settled[i]) {
-            /* 정면: 중력 + 감쇠 */
-            v.vy -= GRAVITY * dt;
-            mesh.position.y += v.vy * dt;
-
-            /* 충돌 수평 속도 유지 (마찰) */
-            const hf = Math.pow(0.88, dt * 60);
-            mesh.position.x += v.vx * dt;
-            mesh.position.z += v.vz * dt;
-            v.vx *= hf; v.vz *= hf;
-            if (Math.abs(mesh.position.x) > WALL_X) { mesh.position.x = Math.sign(mesh.position.x) * WALL_X; v.vx *= -0.5; }
-            if (Math.abs(mesh.position.z) > WALL_Z) { mesh.position.z = Math.sign(mesh.position.z) * WALL_Z; v.vz *= -0.5; }
-
-            /* 회전 감쇠 */
-            const rd = Math.pow(0.78, dt * 60);
-            v.rx *= rd; v.ry *= rd; v.rz *= rd;
-            mesh.rotation.x += v.rx * dt;
-            mesh.rotation.y += v.ry * dt;
-            mesh.rotation.z += v.rz * dt;
-
-            if (mesh.position.y <= FLOOR_Y + HALF) {
-              mesh.position.y = FLOOR_Y + HALF;
-              if (Math.abs(v.vy) < 3.5) {
-                settled[i] = true;
-                mesh.quaternion.copy(tgtQuats[i]);
-                v.rx = 0; v.ry = 0; v.rz = 0; v.vy = 0; v.vx = 0; v.vz = 0;
-              } else {
-                v.vy *= -0.38;
-                v.rx *= 0.45; v.ry *= 0.45; v.rz *= 0.45;
-              }
-            }
-          }
-        }
-      });
-
-      /* ── 주사위 간 충돌 해소 ── */
-      if (s === 'rolling' || s === 'settling') {
-        for (let a = 0; a < meshes.length - 1; a++) {
-          for (let b = a + 1; b < meshes.length; b++) {
-            const pa = meshes[a].position, pb = meshes[b].position;
-            const va = vels[a], vb = vels[b];
-            const sA = settled[a], sB = settled[b];
-            if (sA && sB) continue;
-
-            const dx = pb.x - pa.x;
-            const dy = isTop ? 0 : (pb.y - pa.y);
-            const dz = pb.z - pa.z;
-            const d2 = dx * dx + dy * dy + dz * dz;
-            if (d2 >= COLL_D * COLL_D || d2 < 1e-6) continue;
-
-            const dist = Math.sqrt(d2);
-            const nx = dx / dist, ny = dy / dist, nz = dz / dist;
-            const gap = COLL_D - dist;
-
-            /* 위치 분리 */
-            const mA = sA ? 0 : (sB ? 1 : 0.5);
-            const mB = sB ? 0 : (sA ? 1 : 0.5);
-            if (!sA) { pa.x -= nx * gap * mA; pa.z -= nz * gap * mA; if (!isTop) pa.y -= ny * gap * mA; }
-            if (!sB) { pb.x += nx * gap * mB; pb.z += nz * gap * mB; if (!isTop) pb.y += ny * gap * mB; }
-
-            /* 속도 교환 */
-            const vax = va.vx, vay = va.vy, vaz = va.vz;
-            const vbx = vb.vx, vby = vb.vy, vbz = vb.vz;
-            const relDot = (vbx - vax) * nx + (isTop ? 0 : (vby - vay) * ny) + (vbz - vaz) * nz;
-            if (relDot >= 0) continue;
-
-            const e = 0.65;
-            const j = (sA || sB) ? -(1 + e) * relDot : -(1 + e) * relDot * 0.5;
-
-            if (!sA) { va.vx -= j * nx; va.vz -= j * nz; if (!isTop) va.vy -= j * ny; }
-            if (!sB) { vb.vx += j * nx; vb.vz += j * nz; if (!isTop) vb.vy += j * ny; }
-          }
-        }
-      }
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      ro.disconnect();
-      meshes.forEach(m => {
-        m.geometry.dispose();
-        [].concat(m.material).forEach(mat => mat.dispose());
-      });
-      renderer.dispose();
-    };
-  }, [isTop]); // isTop은 바뀌지 않으므로 실질적으로 mount 1회
+    return () => disposeFn();
+  }, [isTop]);
 
   return (
     <canvas
