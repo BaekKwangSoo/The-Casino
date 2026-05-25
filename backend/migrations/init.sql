@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   id          SERIAL PRIMARY KEY,
   username    VARCHAR(30) UNIQUE NOT NULL,
   password    VARCHAR(100) NOT NULL,
-  balance     NUMERIC(15,2) DEFAULT 100000.00,  -- 초기 지급 크레딧
+  balance     NUMERIC(15,2) DEFAULT 1000000.00,  -- 초기 지급 크레딧
   total_bet   NUMERIC(15,2) DEFAULT 0,
   total_win   NUMERIC(15,2) DEFAULT 0,
   created_at  TIMESTAMP DEFAULT NOW(),
